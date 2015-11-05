@@ -9,15 +9,50 @@ Read the [official guide](http://guides.emberjs.com/v2.1.0/).
 
 ## Table Of Contents
 
-+ [Genera](#general)
++ [General](#general)
 + [Actions](#actions)
-+ [Ember Data](#ember-data)
-+ [Router](#router)
-+ [Pods](#pods)
++ [Testing](#testing)
 + [Templates](#templates)
 + [Styles](#styles)
 
 ## General
+
+Everything apart from components has to be laid out based on the router
+
+```javascript
+Router.map(function() {
+  this.route('dashboard', { path: '/' });
+  this.route('performance');
+  this.route('projects');
+
+  this.route('team', function() {
+    this.route('team.project', { path: ':project_id' });
+  });
+
+  this.route('application_error', { path: '*path' });
+});
+```
+
+---
+
+Use pods. Every pod should follow this structure:
+
+```
+app/pods/projects/controller.js
+app/pods/projects/route.js
+app/pods/projects/template.hbs
+```
+
+---
+
+Use the appropriate Ember Data methods for retrieving data
+
+| Type          | Async from server/store | Sync from store      | Query server               |
+|---------------|-------------------------|----------------------|----------------------------|
+| Single Record | findRecord(type,id)     | peekRecord(type, id) | queryRecord(type, {query}) |
+| All Records   | findAll(type)           | peekAll(type)        | query(type, {query})       |
+
+---
 
 Use [computed properties](http://guides.emberjs.com/v2.1.0/object-model/computed-properties/) whenever applicable.
 
@@ -48,6 +83,8 @@ didInsertElement: function() {
   Ember.$(document).foundation({ dropdown: {} });
 }
 ```
+
+---
 
 ## Actions
 
@@ -119,41 +156,119 @@ Ember.Component.extend({
 });
 ```
 
-## Ember Data
+## Testing
 
-Use the appropriate method to retrieve data:
+Use `assert.expect` in every test.
 
-| Type          | Async from server/store | Sync from store      | Query server               |
-|---------------|-------------------------|----------------------|----------------------------|
-| Single Record | findRecord(type,id)     | peekRecord(type, id) | queryRecord(type, {query}) |
-| All Records   | findAll(type)           | peekAll(type)        | query(type, {query})       |
+**Do this:**
 
-## Router
+```js
+test('1 is 1', function(assert) {
+  assert.expect(1);
 
-Pretty much everything apart from components has to be laid out based on the router structure, e.g.:
-
-```javascript
-Router.map(function() {
-  this.route('dashboard', { path: '/' });
-  this.route('performance');
-  this.route('projects');
-
-  this.route('team', function() {
-    this.route('team.project', { path: ':project_id' });
-  });
-
-  this.route('application_error', { path: '*path' });
+  assert.equals(1, 1);
 });
 ```
 
-## Pods
+**Don't do this:**
 
-Use pods. Every pod should follow this structure:
-
+```js
+test('1 is 1', function(assert) {
+  assert.equals(1, 1);
+});
 ```
-app/pods/projects/controller.js
-app/pods/projects/route.js
-app/pods/projects/template.hbs
+
+---
+
+If you want to perform multiple actions and assertions, remember to nest the
+`andThen` functions.
+
+**Do this:**
+
+```js
+test('1 is 1', function(assert) {
+  assert.expect(2);
+
+  click('button.do');
+
+  andThen(function() {
+    assert(find('.done').length, 1);
+
+    click('button.undo');
+
+    andThen(function() {
+      assert(find('.done').length, 0);
+    });
+  });
+});
+```
+
+**Don't do this:**
+
+```js
+test('1 is 1', function(assert) {
+  assert.expect(2);
+
+  click('button.do');
+
+  andThen(function() {
+    assert(find('.done').length, 1);
+  });
+
+  click('button.undo');
+
+  andThen(function() {
+    assert(find('.done').length, 0);
+  });
+});
+```
+
+---
+
+Remember that every action like click, select and fillIn are promises, so you
+just need one `andThen` function to wait for all the promises to resolve.
+
+**Do this:**
+
+```js
+test('1 is 1', function(assert) {
+  assert.expect(1);
+
+  click('button.add');
+  fillIn('input[name=title]', 'Hello world');
+  select('.priority', 'High');
+  click('button.submit');
+
+  andThen(function() {
+    assert(find('.todos ul li').length, 1);
+  });
+});
+```
+
+**Don't do this:**
+
+```js
+test('1 is 1', function(assert) {
+  assert.expect(1);
+
+  click('button.add');
+
+  andThen(function() {
+    fillIn('input[name=title]', 'Hello world');
+
+    andThen(function() {
+      select('.priority', 'High');
+
+      andThen(function() {
+        click('button.submit');
+
+        andThen(function() {
+          assert(find('.todos ul li').length, 1);
+        });
+      });
+    });
+  });
+});
 ```
 
 ## Templates
