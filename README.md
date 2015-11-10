@@ -1,7 +1,7 @@
 # Ember Style Guide
 
 This is a collection of best practices we've found useful when developing Ember
-applications at AlphaSights. You're incouraged to follow them.
+applications at AlphaSights. You're encouraged to follow them.
 
 ## Before we start
 
