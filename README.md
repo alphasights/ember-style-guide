@@ -70,6 +70,22 @@ Use `Ember.computed.oneWay` instead of `Ember.computed.alias` unless there is a
 specific reason for propagating changes back to the source. If you change this
 property, it will diverge from the original one.
 
+---
+
+Use ES6 object destructuring for commonly used helpers, i.e.
+
+```
+const { computed, get, set, inject } = Ember;
+```
+
+---
+
+Use `get(this, 'hello')` instead of `this.get('hello')` because it works even
+if the object doesn't respond to `get`. Same reasoning applies for `set(this,
+'name', 'John')`.
+
+---
+
 ## Actions
 
 Use camel case for action properties.
