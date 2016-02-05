@@ -62,33 +62,13 @@ Use [computed properties](http://guides.emberjs.com/v2.1.0/object-model/computed
 
 ---
 
+Always use `Ember.computed.readOnly` when you don't need to set the property.
+
+---
+
 Use `Ember.computed.oneWay` instead of `Ember.computed.alias` unless there is a
-specific reason for propagating changes back to the source.
-
----
-
-Prefer using the `on` syntax for events like `didInsertElement` instead of
-overriding the method directly. This spares you from having to call `super` and
-gives you a chance to give a meaningful name to the method.
-
-**Do this:**
-
-```javascript
-setupFoundation: Ember.on('didInsertElement', function() {
-  Ember.$(document).foundation({ dropdown: {} });
-}),
-```
-
-**Don't do this:**
-
-```javascript
-didInsertElement: function() {
-  this._super.apply(this, arguments);
-  Ember.$(document).foundation({ dropdown: {} });
-}
-```
-
----
+specific reason for propagating changes back to the source. If you change this
+property, it will diverge from the original one.
 
 ## Actions
 
@@ -117,7 +97,7 @@ Use closure actions whenever applicable.
 {{as-star-project model=project onSave=(action "saveProject")}}
 
 <!-- as-star-project.hbs -->
-<button {{action this.attrs.onSave}}>Save</button>
+<button {{action attrs.onSave}}>Save</button>
 ```
 
 **Over**
@@ -184,30 +164,10 @@ test('1 is 1', function(assert) {
 
 ---
 
-If you want to perform multiple actions and assertions, remember to nest the
+If you want to perform multiple actions and assertions, don't nest the
 `andThen` functions.
 
 **Do this:**
-
-```js
-test('1 is 1', function(assert) {
-  assert.expect(2);
-
-  click('button.do');
-
-  andThen(function() {
-    assert(find('.done').length, 1);
-
-    click('button.undo');
-
-    andThen(function() {
-      assert(find('.done').length, 0);
-    });
-  });
-});
-```
-
-**Don't do this:**
 
 ```js
 test('1 is 1', function(assert) {
@@ -223,6 +183,26 @@ test('1 is 1', function(assert) {
 
   andThen(function() {
     assert(find('.done').length, 0);
+  });
+});
+```
+
+**Don't this:**
+
+```js
+test('1 is 1', function(assert) {
+  assert.expect(2);
+
+  click('button.do');
+
+  andThen(function() {
+    assert(find('.done').length, 1);
+
+    click('button.undo');
+
+    andThen(function() {
+      assert(find('.done').length, 0);
+    });
   });
 });
 ```
@@ -278,30 +258,6 @@ test('1 is 1', function(assert) {
 ## Templates
 
 Use double quotes for strings.
-
----
-
-Whenever you need a wrapper for a certain element, avoid creating a class name
-like `element-wrapper`. Instead, add the element class to the wrapper element
-and have an anonymous element inside.
-
-**Do this:**
-
-```html
-<div class="message">
-  <div>
-  </div>
-</div>
-```
-
-**Don't do this:**
-
-```html
-<div class="message-wrapper">
-  <div class="message">
-  </div>
-</div>
-```
 
 ---
 
@@ -365,54 +321,4 @@ export default Ember.Component.extend({
 export default Ember.Component.extend({
   layoutName: 'components.as-widget.widget',
 });
-```
-
-## Styles
-
-Prefix global variable names with the file/directory name, i. e. if you're
-adding a variable to `templates/team/_project.scss`, make sure to prefix it with
-`team-project`.
-
-**Do this:**
-
-`$team-project-header-height: rem-calc(40);`
-
-**Don't do this:**
-
-`$header-height: rem-calc(40);`
-
----
-
-If you have to handle optional classes for a certain selector, put the styles for those at the end.
-
-**Do this:**
-
-```scss
-.project-list-item {
-  padding: 5px;
-
-  > div {
-    color: white;
-  }
-
-  &.no-target {
-    background-color: red;
-  }
-}
-```
-
-**Don't do this:**
-
-```scss
-.project-list-item {
-  padding: 5px;
-
-  &.no-target {
-    background-color: red;
-  }
-
-  > div {
-    color: white;
-  }
-}
 ```
